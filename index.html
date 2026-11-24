@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en-NZ">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Recipe Box</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* VOICE: a friendly, tidy kitchen notebook; practical first.
+   IDEA: a recipe box of index cards, filed by coloured tabs (tags).
+   PICTURE: the photo grid of your own recipes is the picture.
+   COLOUR and TYPE: tomato red band, basil green actions, white page; Fraunces titles, Inter body.
+   LAYOUT: red header band; search, tag chips, card grid; recipe page with photo beside title, ingredients beside directions. */
+:root{color-scheme:light dark;
+--bg:light-dark(#ffffff,#161514);--panel:light-dark(#f4f2ee,#22201e);--ink:light-dark(#1d1b18,#eeeae3);
+--mute:light-dark(#6a645b,#a8a196);--line:light-dark(#e4dfd6,#37332e);--tom:light-dark(#c4351d,#d9512f);
+--basil:light-dark(#2e6a3a,#8fcf9b);--onbasil:light-dark(#ffffff,#10200f);--chip:light-dark(#efece6,#2a2825)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 Inter,system-ui,sans-serif;overflow-x:clip}
+h1,h2,h3{font-family:Fraunces,Georgia,serif;font-weight:600;line-height:1.1;margin:0 0 .4em;text-wrap:balance}
+h1{font-size:clamp(30px,4.5vw,46px)}h2{font-size:22px}h3{font-size:17px}
+button,input,textarea,select{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--basil);outline-offset:2px}
+.top{background:var(--tom);color:#fff;padding:12px max(5vw,16px);display:flex;flex-wrap:wrap;gap:10px 24px;align-items:center;justify-content:space-between}
+.brand{font:700 26px/1 Fraunces,Georgia,serif;display:flex;gap:10px;align-items:center;background:none;border:0;color:#fff;cursor:pointer;padding:0;min-height:44px}
+.top nav{display:flex;flex-wrap:wrap;gap:6px}
+.top nav button{background:transparent;color:#fff;border:1px solid #ffffff66;border-radius:999px;padding:0 16px;min-height:42px;font-weight:500;font-size:15px;cursor:pointer}
+.top nav button.on{background:#fff;color:#a52a15;border-color:#fff}
+.band{padding:clamp(20px,3.5vw,48px) max(5vw,16px);max-width:1240px;margin:0 auto}
+input,textarea,select{width:100%;font-size:16px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg)}
+textarea{resize:vertical;line-height:1.5}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px;padding:0 18px;border-radius:10px;border:1px solid var(--line);background:var(--panel);cursor:pointer;font-weight:500;text-decoration:none}
+.btn.pri{background:var(--basil);border-color:var(--basil);color:var(--onbasil)}
+.btn.warn{color:var(--tom)}.btn:disabled{opacity:.5;cursor:wait}
+.link{background:none;border:0;color:var(--tom);padding:0;min-height:44px;cursor:pointer;font-weight:500}
+.tools{display:flex;gap:10px;flex-wrap:wrap}.tools input{flex:1 1 260px;width:auto}.tools select{flex:0 1 200px;width:auto}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0}
+.chip{min-height:36px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:var(--chip);cursor:pointer;font-size:14px;white-space:nowrap}
+.chip span{color:var(--mute);margin-left:4px}
+.chip.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}.chip.on span{color:inherit;opacity:.7}
+.chip.clear{background:none;border-style:dashed}
+.count{color:var(--mute);font-size:14px;margin:0 0 14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:18px}
+.card{display:flex;flex-direction:column;text-align:left;padding:0;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--bg);cursor:pointer;transition:transform .15s,box-shadow .15s}
+.card:hover{transform:translateY(-3px);box-shadow:0 10px 24px #0000001f}
+.ph{aspect-ratio:4/3;background:var(--panel);display:grid;place-items:center;overflow:hidden;width:100%}
+.ph,.hp{position:relative}.ph img,.hp img{position:absolute;inset:0}
+.ph img,.hp img,.drop img{width:100%;height:100%;object-fit:cover;display:block}
+.ph span,.hp span{font:600 56px Fraunces,Georgia,serif;color:var(--tom);opacity:.55}
+.ct{padding:12px 14px 14px}.ct h3{margin:0 0 4px}.ct p{margin:0;color:var(--mute);font-size:13px}
+.empty{padding:40px 20px;text-align:center;border:2px dashed var(--line);border-radius:14px;color:var(--mute)}
+.hero{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:clamp(20px,4vw,48px);align-items:start}
+.hp{aspect-ratio:4/3;border-radius:16px;overflow:hidden;background:var(--panel);display:grid;place-items:center}
+.meta{display:flex;flex-wrap:wrap;gap:8px 28px;margin:14px 0}.meta dt{font-size:13px;color:var(--mute)}.meta dd{margin:0;font-weight:600}
+.src{color:var(--mute);margin:0 0 10px}.src a{color:var(--tom)}
+.tagrow{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
+.acts{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+.cols{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,3fr);gap:clamp(20px,4vw,56px);margin-top:clamp(28px,4vw,48px)}
+.ing,.dir{list-style:none;padding:0;margin:0}.ing li{border-bottom:1px solid var(--line)}
+.ing label{display:flex;gap:12px;padding:10px 0;cursor:pointer;align-items:flex-start}
+.ing input{width:20px;height:20px;flex:none;margin-top:2px;accent-color:var(--basil)}
+.ing input:checked+span{text-decoration:line-through;color:var(--mute)}
+li.sub{font:600 16px Fraunces,Georgia,serif;color:var(--tom);padding:18px 0 6px;border:0}
+.dir li{display:flex;gap:14px;margin-bottom:18px}
+.dir .n{flex:none;width:30px;height:30px;border-radius:50%;background:var(--tom);color:#fff;display:grid;place-items:center;font-weight:600;font-size:14px}
+.dir p{margin:3px 0 0;max-width:68ch}
+.notes{margin-top:32px;padding:18px 22px;background:var(--panel);border-radius:14px}.notes p{margin:0 0 .5em}
+form label{display:block;font-weight:500;margin-bottom:14px}form small{color:var(--mute);font-weight:400;margin-left:6px}
+form label>input,form label>textarea{margin-top:6px;font-weight:400}
+.edgrid{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,3fr);gap:28px}
+.drop{aspect-ratio:4/3;border:2px dashed var(--line);border-radius:14px;display:grid;place-items:center;overflow:hidden;color:var(--mute);text-align:center;margin-bottom:10px}
+.drop.over{border-color:var(--basil);background:var(--panel)}
+.three{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.tagedit{display:flex;flex-wrap:wrap;gap:6px;padding:6px;border:1px solid var(--line);border-radius:10px;margin:6px 0 14px}
+.tagedit input{border:0;flex:1 1 140px;width:auto;padding:6px;background:none}
+.lbl{font-weight:500}
+.impgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:18px;margin-top:10px}
+.panel{background:var(--panel);border-radius:16px;padding:22px}.panel p{margin:0 0 12px}
+.bm{display:inline-flex;min-height:48px;align-items:center;padding:0 22px;border-radius:999px;background:var(--tom);color:#fff;font-weight:600;text-decoration:none;cursor:grab;margin:4px 0 14px}
+.hint{font-size:14px;color:var(--mute)}
+details{margin-top:12px}summary{cursor:pointer;color:var(--mute);font-size:14px;min-height:32px}
+#toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,20px);background:var(--ink);color:var(--bg);padding:12px 20px;border-radius:12px;opacity:0;transition:.25s;pointer-events:none;max-width:90vw;z-index:9}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+dialog{border:0;border-radius:16px;padding:24px;max-width:420px;background:var(--bg);color:var(--ink)}dialog::backdrop{background:#0009}
+@media(max-width:760px){.hero,.cols,.edgrid{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:480px){.three{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.ct h3{font-size:15px}.top nav button{padding:0 12px}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header class="top">
+  <button class="brand" data-go="list" aria-label="Recipe Box home">
+    <svg width="30" height="30" viewBox="0 0 32 32" aria-hidden="true"><path d="M4 14h24a12 12 0 0 1-24 0z" fill="#fff"/><path d="M2 14h28" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/><path d="M12 9c0-2 2-2 2-4M18 9c0-2 2-2 2-4" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+    Recipe Box
+  </button>
+  <nav aria-label="Main">
+    <button data-go="list">Recipes</button>
+    <button data-go="new">New recipe</button>
+    <button data-go="import">Import</button>
+    <button data-go="backup">Backup</button>
+  </nav>
+</header>
+<main id="main"></main>
+<div id="toast" role="status" aria-live="polite"></div>
+<dialog id="dlg"><form method="dialog"><p id="dlgmsg"></p><div class="acts"><button class="btn warn" value="yes">Delete</button><button class="btn" value="no">Keep it</button></div></form></dialog>
+
+<script>
+/* The browser button ("bookmarklet"). It runs on the recipe site, finds the
+   schema.org Recipe data that most recipe sites publish, and opens this app with it. */
+function bm(APP){
+  var K=['name','image','recipeIngredient','recipeInstructions','recipeYield','prepTime','cookTime','totalTime','recipeCategory','recipeCuisine','description'];
+  function find(o){
+    if(!o||typeof o!=='object')return null;
+    if(Array.isArray(o)){for(var i=0;i<o.length;i++){var f=find(o[i]);if(f)return f}return null}
+    if(/\brecipe\b/.test([].concat(o['@type']||[]).join(' ').toLowerCase()))return o;
+    return find(o['@graph'])||find(o.mainEntity)||null;
+  }
+  var r=null,s=document.querySelectorAll('script[type="application/ld+json"]');
+  for(var i=0;i<s.length&&!r;i++){
+    try{r=find(JSON.parse(s[i].textContent))}catch(e){try{r=find(JSON.parse(s[i].textContent.replace(/[\n\r\t]+/g,' ')))}catch(e2){}}
+  }
+  var og=document.querySelector('meta[property="og:image"]'),d={url:location.href};
+  if(r){d.schema={};K.forEach(function(k){if(r[k])d.schema[k]=r[k]})}
+  else{
+    d.title=document.title;d.image=og?og.content:'';d.text=String(window.getSelection());
+    if(!d.text&&!confirm('No recipe data found on this page. Tip: select the recipe text first, then click again. Open a blank recipe with the page title and link?'))return;
+  }
+  var u=APP+'#import='+encodeURIComponent(JSON.stringify(d));
+  if(!window.open(u,'_blank'))location.href=u;
+}
+</script>
+<script>
+{
+const $=s=>document.querySelector(s);
+const main=$('#main');
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const lines=t=>String(t||'').split('\n').map(s=>s.trim()).filter(Boolean);
+const safeImg=u=>/^(data:image\/|https?:\/\/)/i.test(u||'')?u:'';
+const LS={get(k,d){try{return localStorage.getItem(k)??d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+let db=null,recipes=[],selTags=new Set(),query='',sort=LS.get('rb-sort','name');
+
+/* ---------- Storage (IndexedDB, falls back to memory) ---------- */
+const openDB=()=>new Promise(res=>{try{const r=indexedDB.open('recipe-box',1);r.onupgradeneeded=()=>r.result.createObjectStore('recipes',{keyPath:'id'});r.onsuccess=()=>{db=r.result;res()};r.onerror=()=>res()}catch(e){res()}});
+const store=m=>db.transaction('recipes',m).objectStore('recipes');
+const getAll=()=>new Promise(res=>{if(!db)return res([]);try{const q=store('readonly').getAll();q.onsuccess=()=>res(q.result||[]);q.onerror=()=>res([])}catch(e){res([])}});
+const put=r=>{const i=recipes.findIndex(x=>x.id===r.id);i<0?recipes.push(r):recipes[i]=r;return new Promise(res=>{if(!db)return res();try{const q=store('readwrite').put(r);q.onsuccess=q.onerror=()=>res()}catch(e){res()}})};
+const remove=id=>{recipes=recipes.filter(x=>x.id!==id);return new Promise(res=>{if(!db)return res();try{const q=store('readwrite').delete(id);q.onsuccess=q.onerror=()=>res()}catch(e){res()}})};
+
+function normalise(o){
+  const s=v=>String(v??'').trim();
+  const tags=[...new Set((Array.isArray(o.tags)?o.tags:String(o.tags||'').split(',')).map(t=>s(t).toLowerCase()).filter(Boolean))];
+  return {id:o.id||null,title:s(o.title),photo:safeImg(o.photo),source:s(o.source),servings:s(o.servings),prep:s(o.prep),cook:s(o.cook),
+    tags,ingredients:s(o.ingredients),directions:s(o.directions),notes:s(o.notes),created:+o.created||Date.now(),updated:+o.updated||Date.now()};
+}
+let toastT;
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),3200)}
+const imgTag=r=>`<span aria-hidden="true">${esc((r.title||'?')[0].toUpperCase())}</span>`+(safeImg(r.photo)?`<img src="${esc(r.photo)}" alt="" loading="lazy" onerror="this.remove()">`:'');
+
+/* ---------- Parsing recipes from web pages ---------- */
+const clean=v=>{const d=new DOMParser().parseFromString(String(v??'').replace(/<\/(li|p|div)>|<br\s*\/?>/gi,'\n'),'text/html');return (d.body?.textContent||'').replace(/[ \t ]+/g,' ').trim()};
+function findRecipe(o){
+  if(!o||typeof o!=='object')return null;
+  if(Array.isArray(o)){for(const x of o){const f=findRecipe(x);if(f)return f}return null}
+  if([].concat(o['@type']||[]).some(t=>String(t).toLowerCase()==='recipe'))return o;
+  return findRecipe(o['@graph'])||findRecipe(o.mainEntity)||null;
+}
+function steps(x){
+  if(!x)return[];
+  if(typeof x==='string')return lines(clean(x));
+  if(Array.isArray(x))return x.flatMap(steps);
+  const t=[].concat(x['@type']||[]).join(' ');
+  if(/HowToSection/i.test(t))return[...(x.name?['# '+clean(x.name)]:[]),...steps(x.itemListElement)];
+  if(x.itemListElement)return steps(x.itemListElement);
+  return lines(clean(x.text||x.name||''));
+}
+function dur(v){
+  const m=/^P(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?)?/i.exec(String(v||''));
+  if(!m||!(m[1]||m[2]||m[3]))return clean(v);
+  let h=(+m[1]||0)*24+(+m[2]||0),mi=+m[3]||0;if(mi>=60){h+=Math.floor(mi/60);mi%=60}
+  return [h?h+' h':'',mi?mi+' min':''].filter(Boolean).join(' ');
+}
+function fromSchema(o,url){
+  let im=o.image;if(Array.isArray(im))im=im[0];if(im&&typeof im==='object')im=im.url||im.contentUrl;
+  const y=[].concat(o.recipeYield||[]).map(clean).filter(Boolean);
+  const tags=[].concat(o.recipeCategory||[],o.recipeCuisine||[]).flatMap(t=>String(t).split(','));
+  return normalise({title:clean(o.name),photo:String(im||''),source:url||o.url||'',servings:y.find(v=>/[a-z]/i.test(v))||y[0]||'',
+    prep:dur(o.prepTime),cook:dur(o.cookTime)||dur(o.totalTime),tags,
+    ingredients:[].concat(o.recipeIngredient||o.ingredients||[]).map(clean).filter(Boolean).join('\n'),
+    directions:steps(o.recipeInstructions).join('\n'),notes:clean(o.description)});
+}
+function fromText(txt,url){
+  const t=String(txt||'').trim();
+  if(/^[\[{]/.test(t)){try{const f=findRecipe(JSON.parse(t));if(f)return fromSchema(f,url)}catch(e){}}
+  if(/<[a-z!]/i.test(t)){
+    const d=new DOMParser().parseFromString(t,'text/html');
+    for(const s of d.querySelectorAll('script[type="application/ld+json"]')){
+      for(const src of [s.textContent,s.textContent.replace(/[\n\r\t]+/g,' ')]){try{const f=findRecipe(JSON.parse(src));if(f)return fromSchema(f,url)}catch(e){}}
+    }
+    const meta=p=>d.querySelector(`meta[property="${p}"]`)?.getAttribute('content')||'';
+    return normalise({title:meta('og:title')||d.title,photo:meta('og:image'),source:url});
+  }
+  const ls=lines(t);return normalise({title:ls[0]||'',directions:ls.slice(1).join('\n'),source:url});
+}
+async function toDataURL(blob){
+  const b=await createImageBitmap(blob),k=Math.min(1,1200/Math.max(b.width,b.height)),c=document.createElement('canvas');
+  c.width=Math.round(b.width*k);c.height=Math.round(b.height*k);c.getContext('2d').drawImage(b,0,0,c.width,c.height);
+  return c.toDataURL('image/jpeg',.82);
+}
+async function localise(url){try{const r=await fetch(url,{mode:'cors'});if(!r.ok)return null;return await toDataURL(await r.blob())}catch(e){return null}}
+
+/* ---------- Navigation ---------- */
+function hl(v){document.querySelectorAll('.top nav button').forEach(b=>b.classList.toggle('on',b.dataset.go===v))}
+function nav(v,arg){
+  window.scrollTo(0,0);
+  if(v==='view')return renderView(arg);
+  if(v==='new')return startEdit(normalise({}));
+  if(v==='edit'){const r=recipes.find(x=>x.id===arg);return r?startEdit(structuredClone(r)):nav('list')}
+  if(v==='import')return renderImport();
+  if(v==='backup')return renderBackup();
+  renderList();
+}
+document.addEventListener('click',e=>{
+  const g=e.target.closest('[data-go]');if(g){e.preventDefault();return nav(g.dataset.go)}
+  const o=e.target.closest('[data-open]');if(o)return nav('view',o.dataset.open);
+  const t=e.target.closest('[data-tagjump]');if(t){selTags=new Set([t.dataset.tagjump]);query='';nav('list')}
+});
+
+/* ---------- Recipe list ---------- */
+function matches(r,ignoreTags){
+  const q=query.toLowerCase().trim();
+  return (ignoreTags||[...selTags].every(t=>r.tags.includes(t)))&&(!q||(r.title+' '+r.ingredients+' '+r.tags.join(' ')).toLowerCase().includes(q));
+}
+function renderList(){
+  hl('list');
+  main.innerHTML=`<section class="band">
+    <div class="tools"><input id="q" type="search" placeholder="Search titles, ingredients or tags" aria-label="Search recipes" value="${esc(query)}">
+    <select id="sort" aria-label="Sort"><option value="name">Sort A to Z</option><option value="recent">Recently added</option><option value="updated">Recently edited</option></select></div>
+    <div class="chips" id="chips" role="group" aria-label="Filter by tag"></div>
+    <p class="count" id="count"></p><div class="grid" id="grid"></div></section>`;
+  $('#sort').value=sort;
+  $('#q').oninput=e=>{query=e.target.value;results()};
+  $('#sort').onchange=e=>{sort=e.target.value;LS.set('rb-sort',sort);results()};
+  $('#chips').onclick=e=>{const c=e.target.closest('.chip');if(!c)return;
+    if(c.id==='clr')selTags.clear();else{const t=c.dataset.tag;selTags.has(t)?selTags.delete(t):selTags.add(t)}results()};
+  results();
+}
+function results(){
+  const list=recipes.filter(r=>matches(r));
+  const cmp={name:(a,b)=>a.title.localeCompare(b.title),recent:(a,b)=>b.created-a.created,updated:(a,b)=>b.updated-a.updated}[sort]||((a,b)=>a.title.localeCompare(b.title));
+  list.sort(cmp);
+  const counts=new Map();list.forEach(r=>r.tags.forEach(t=>counts.set(t,(counts.get(t)||0)+1)));
+  selTags.forEach(t=>counts.has(t)||counts.set(t,0));
+  $('#chips').innerHTML=[...counts].sort((a,b)=>a[0].localeCompare(b[0])).map(([t,n])=>{const on=selTags.has(t);
+    return `<button class="chip${on?' on':''}" data-tag="${esc(t)}" aria-pressed="${on}">${esc(t)}<span>${n}</span></button>`}).join('')
+    +(selTags.size?'<button class="chip clear" id="clr">Clear filters</button>':'');
+  $('#count').textContent=recipes.length?`Showing ${list.length} of ${recipes.length} recipe${recipes.length===1?'':'s'}${selTags.size?' tagged '+[...selTags].join(' + '):''}`:'';
+  $('#grid').innerHTML=list.map(r=>`<button class="card" data-open="${esc(r.id)}"><div class="ph">${imgTag(r)}</div><div class="ct"><h3>${esc(r.title||'Untitled')}</h3><p>${r.tags.slice(0,4).map(esc).join(' · ')}</p></div></button>`).join('')
+    ||`<div class="empty" style="grid-column:1/-1">${recipes.length?'No recipes match. Try fewer tags or a different search.':'Your recipe box is empty. <button class="link" data-go="import">Import one from the web</button> or <button class="link" data-go="new">write one in</button>.'}</div>`;
+}
+
+/* ---------- Single recipe ---------- */
+function renderView(id){
+  const r=recipes.find(x=>x.id===id);if(!r)return nav('list');hl('list');
+  let n=0,host='';try{host=new URL(r.source).hostname.replace(/^www\./,'')}catch(e){}
+  const meta=[['Serves',r.servings],['Prep',r.prep],['Cook',r.cook]].filter(x=>x[1]);
+  const sub=l=>/^#/.test(l)?`<li class="sub">${esc(l.replace(/^#+\s*/,''))}</li>`:null;
+  main.innerHTML=`<article class="band">
+   <div class="hero"><div class="hp">${imgTag(r)}</div>
+    <div><button class="link" data-go="list">&larr; All recipes</button><h1>${esc(r.title||'Untitled')}</h1>
+     ${meta.length?`<dl class="meta">${meta.map(m=>`<div><dt>${m[0]}</dt><dd>${esc(m[1])}</dd></div>`).join('')}</dl>`:''}
+     ${host&&/^https?:/i.test(r.source)?`<p class="src">From <a href="${esc(r.source)}" target="_blank" rel="noopener">${esc(host)}</a></p>`:''}
+     <div class="tagrow">${r.tags.map(t=>`<button class="chip" data-tagjump="${esc(t)}">${esc(t)}</button>`).join('')}</div>
+     <div class="acts"><button class="btn pri" id="edit">Edit recipe</button><button class="btn warn" id="del">Delete</button></div></div></div>
+   <div class="cols">
+    <section><h2>Ingredients</h2><ul class="ing">${lines(r.ingredients).map(l=>sub(l)||`<li><label><input type="checkbox"><span>${esc(l)}</span></label></li>`).join('')||'<li class="hint">None yet</li>'}</ul></section>
+    <section><h2>Directions</h2><ol class="dir">${lines(r.directions).map(l=>sub(l)||`<li><span class="n">${++n}</span><p>${esc(l)}</p></li>`).join('')||'<li class="hint">None yet</li>'}</ol></section>
+   </div>
+   ${r.notes?`<section class="notes"><h2>Notes</h2>${lines(r.notes).map(l=>`<p>${esc(l)}</p>`).join('')}</section>`:''}
+  </article>`;
+  $('#edit').onclick=()=>nav('edit',r.id);
+  $('#del').onclick=()=>{const d=$('#dlg');$('#dlgmsg').textContent=`Delete "${r.title||'Untitled'}"? This cannot be undone.`;
+    d.onclose=async()=>{if(d.returnValue==='yes'){await remove(r.id);toast('Recipe deleted');nav('list')}};d.showModal()};
+}
+
+/* ---------- Add / edit ---------- */
+function startEdit(draft,msg){
+  hl(draft.id?'':'new');
+  const allTags=[...new Set(recipes.flatMap(r=>r.tags))].sort();
+  main.innerHTML=`<form class="band" id="f" novalidate>
+   <h1>${draft.id?'Edit recipe':'New recipe'}</h1>
+   <div class="edgrid">
+    <div><div class="drop" id="drop"></div>
+     <div class="acts" style="margin:0 0 12px"><label class="btn" style="margin:0">Upload photo<input type="file" accept="image/*" id="file" hidden></label><button type="button" class="btn" id="rmph">Remove photo</button></div>
+     <label>Or paste an image web address<input id="phurl" type="url" placeholder="https://"></label></div>
+    <div><label>Title<input name="title" required autocomplete="off"></label>
+     <div class="three"><label>Servings<input name="servings" placeholder="4"></label><label>Prep time<input name="prep" placeholder="15 min"></label><label>Cook time<input name="cook" placeholder="40 min"></label></div>
+     <label>Source web address<input name="source" type="url" placeholder="https://"></label>
+     <span class="lbl">Tags</span><small>Press Enter or a comma after each</small>
+     <div class="tagedit" id="tagedit"></div>
+     <datalist id="taglist">${allTags.map(t=>`<option value="${esc(t)}">`).join('')}</datalist></div>
+   </div>
+   <label>Ingredients<small>One per line. Start a line with # for a heading, e.g. # For the sauce</small><textarea name="ingredients" rows="10"></textarea></label>
+   <label>Directions<small>One step per line</small><textarea name="directions" rows="10"></textarea></label>
+   <label>Notes<textarea name="notes" rows="3"></textarea></label>
+   <div class="acts"><button class="btn pri" type="submit">Save recipe</button><button type="button" class="btn" id="cancel">Cancel</button></div>
+  </form>`;
+  const f=$('#f');
+  for(const k of ['title','servings','prep','cook','source','ingredients','directions','notes'])f.elements[k].value=draft[k]||'';
+  const showPhoto=()=>{$('#drop').innerHTML=draft.photo?`<img src="${esc(draft.photo)}" alt="Recipe photo">`:'Drop a photo here<br>or use Upload photo'};
+  const setFile=async file=>{if(!file||!/^image\//.test(file.type))return toast('That file is not an image');try{draft.photo=await toDataURL(file);showPhoto()}catch(e){toast('Could not read that image')}};
+  showPhoto();
+  $('#file').onchange=e=>setFile(e.target.files[0]);
+  const drop=$('#drop');
+  drop.ondragover=e=>{e.preventDefault();drop.classList.add('over')};drop.ondragleave=()=>drop.classList.remove('over');
+  drop.ondrop=e=>{e.preventDefault();drop.classList.remove('over');setFile(e.dataTransfer.files[0])};
+  $('#rmph').onclick=()=>{draft.photo='';showPhoto()};
+  $('#phurl').onchange=async e=>{const u=safeImg(e.target.value.trim());if(!u)return toast('Enter an address starting with https://');draft.photo=u;showPhoto();const d=await localise(u);if(d){draft.photo=d;showPhoto()}};
+  const te=$('#tagedit');
+  const drawTags=()=>{te.innerHTML=draft.tags.map((t,i)=>`<button type="button" class="chip on" data-i="${i}" aria-label="Remove tag ${esc(t)}">${esc(t)} &times;</button>`).join('')+'<input id="tagin" list="taglist" aria-label="Add a tag" placeholder="Add a tag">';
+    const ti=$('#tagin');ti.onkeydown=e=>{if(e.key==='Enter'||e.key===','){e.preventDefault();addTag()}else if(e.key==='Backspace'&&!ti.value&&draft.tags.length){draft.tags.pop();drawTags();$('#tagin').focus()}};ti.onchange=()=>{if(ti.value.trim())addTag()}};
+  const addTag=()=>{const ti=$('#tagin');const v=ti.value.split(',').map(s=>s.trim().toLowerCase()).filter(Boolean);
+    v.forEach(t=>draft.tags.includes(t)||draft.tags.push(t));drawTags();$('#tagin').focus()};
+  te.onclick=e=>{const c=e.target.closest('[data-i]');if(c){draft.tags.splice(+c.dataset.i,1);drawTags()}};
+  drawTags();
+  $('#cancel').onclick=()=>draft.id?nav('view',draft.id):nav('list');
+  f.onsubmit=async e=>{e.preventDefault();
+    const pend=$('#tagin').value.split(',').map(s=>s.trim().toLowerCase()).filter(Boolean);pend.forEach(t=>draft.tags.includes(t)||draft.tags.push(t));
+    const fd=Object.fromEntries(new FormData(f));if(!fd.title.trim()){toast('Give the recipe a title');return f.elements.title.focus()}
+    const r=normalise({...draft,...fd,id:draft.id||uid(),created:draft.id?draft.created:Date.now(),updated:Date.now()});
+    await put(r);toast('Recipe saved');nav('view',r.id)};
+  if(msg)toast(msg);
+  if(draft.photo&&/^https?:/i.test(draft.photo))localise(draft.photo).then(d=>{if(d&&document.body.contains(drop)){draft.photo=d;showPhoto()}});
+}
+
+/* ---------- Import ---------- */
+const appURL=()=>location.href.split('#')[0];
+const bmCode=()=>'javascript:'+encodeURIComponent('('+bm.toString()+')('+JSON.stringify(appURL())+')');
+function openImported(r){
+  const dupe=r.source&&recipes.some(x=>x.source===r.source);
+  startEdit(r,dupe?'You already have a recipe from this page. Saving adds a second copy.':'Imported. Check the details, then save.');
+}
+function renderImport(){
+  hl('import');
+  main.innerHTML=`<section class="band"><h1>Import a recipe</h1>
+   <div class="impgrid">
+    <div class="panel"><h2>From your browser</h2>
+     <p>Drag this button to your bookmarks bar. On any recipe page, click the bookmark and the recipe opens here, ready to check and save.</p>
+     <a class="bm" id="bm" href="#">Save to Recipe Box</a>
+     <p class="hint">Most recipe sites publish their recipes in a standard format, which the button reads. If a page has none, select the recipe text first and it lands in the directions.</p>
+     <button class="btn" id="copybm">Copy bookmarklet code</button>
+     <p class="hint" style="margin-top:10px">On a phone or tablet: bookmark any page, edit that bookmark, and paste the code in as its address.</p></div>
+    <div class="panel"><h2>From a web address</h2>
+     <p>Browsers stop one site reading another directly, so this needs a small helper (a proxy). The browser button above does not.</p>
+     <label class="lbl">Recipe web address<input id="url" type="url" placeholder="https://" style="margin-top:6px"></label>
+     <div class="acts" style="margin-top:10px"><button class="btn pri" id="go">Fetch recipe</button></div>
+     <p class="hint" id="fmsg" style="margin-top:10px"></p>
+     <details><summary>Proxy settings</summary><label class="lbl" style="margin-top:8px">Proxy prefix<input id="proxy" placeholder="https://your-proxy.example/?url=" style="margin-top:6px"></label><p class="hint">The recipe address is added to the end of this, encoded.</p></details></div>
+    <div class="panel"><h2>Paste</h2>
+     <p>Paste a page's source code, recipe data, or plain text (first line becomes the title).</p>
+     <textarea id="paste" rows="7" aria-label="Paste recipe"></textarea>
+     <div class="acts"><button class="btn pri" id="parse">Read pasted recipe</button></div></div>
+   </div></section>`;
+  const a=$('#bm');a.href=bmCode();a.onclick=e=>{e.preventDefault();toast('Drag this button to your bookmarks bar')};
+  $('#copybm').onclick=()=>navigator.clipboard.writeText(bmCode()).then(()=>toast('Bookmarklet code copied'),()=>toast('Copy was blocked by the browser'));
+  $('#proxy').value=LS.get('rb-proxy','');
+  $('#go').onclick=async()=>{
+    const u=$('#url').value.trim(),p=$('#proxy').value.trim(),m=$('#fmsg');LS.set('rb-proxy',p);
+    if(!/^https?:\/\//i.test(u))return toast('Enter a full address starting with https://');
+    if(!p){m.textContent='Add a proxy prefix under Proxy settings first, or use the browser button.';return}
+    const b=$('#go');b.disabled=true;m.textContent='Fetching...';
+    try{const res=await fetch(p+encodeURIComponent(u));if(!res.ok)throw 0;const r=fromText(await res.text(),u);r.source=u;
+      if(!r.ingredients&&!r.directions)toast('No structured recipe found, so only the title and photo came through');openImported(r)}
+    catch(e){m.textContent='That did not work. Check the proxy, or use the browser button instead.';b.disabled=false}};
+  $('#parse').onclick=()=>{const t=$('#paste').value;if(!t.trim())return toast('Paste something first');openImported(fromText(t,''))};
+}
+function handleImportHash(){
+  const h=location.hash;if(!h.startsWith('#import='))return false;
+  let d=null;for(const s of [h.slice(8)]){try{d=JSON.parse(decodeURIComponent(s))}catch(e){try{d=JSON.parse(s)}catch(e2){}}}
+  try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}
+  if(!d){toast('That import could not be read');return false}
+  openImported(d.schema?fromSchema(d.schema,d.url):normalise({title:clean(d.title),photo:d.image,source:d.url,directions:d.text}));
+  return true;
+}
+window.addEventListener('hashchange',handleImportHash);
+
+/* ---------- Backup ---------- */
+const backupJSON=()=>JSON.stringify({app:'recipe-box',version:1,exported:new Date().toISOString(),recipes});
+function renderBackup(){
+  hl('backup');
+  main.innerHTML=`<section class="band" style="max-width:820px;margin:0"><h1>Backup and restore</h1>
+   <p>Your ${recipes.length} recipe${recipes.length===1?' is':'s are'} saved in this browser only. Download a backup now and then, and restore it on another device or browser.</p>
+   <div class="acts"><button class="btn pri" id="exp">Download backup</button><label class="btn">Restore from file<input type="file" accept=".json,application/json" id="impf" hidden></label><button class="btn" id="cp">Copy backup to clipboard</button></div>
+   <p class="hint" style="margin-top:14px">Restoring adds the recipes in the file. A recipe already here with the same ID is replaced by the file's version.</p></section>`;
+  $('#exp').onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([backupJSON()],{type:'application/json'}));
+    a.download='recipe-box-backup-'+new Date().toISOString().slice(0,10)+'.json';document.body.append(a);a.click();a.remove()};
+  $('#cp').onclick=()=>navigator.clipboard.writeText(backupJSON()).then(()=>toast('Backup copied'),()=>toast('Copy was blocked by the browser'));
+  $('#impf').onchange=async e=>{try{const j=JSON.parse(await e.target.files[0].text());const arr=Array.isArray(j)?j:j.recipes;if(!Array.isArray(arr))throw 0;
+    for(const o of arr)await put(normalise({...o,id:o.id||uid()}));toast(`Restored ${arr.length} recipe${arr.length===1?'':'s'}`);renderBackup()}
+    catch(err){toast('That file is not a Recipe Box backup')}};
+}
+
+/* ---------- Start ---------- */
+const SAMPLES=[
+ {title:'Anzac biscuits',servings:'About 24 biscuits',prep:'15 min',cook:'15 min',tags:['baking','biscuits','kiwi classics'],
+  ingredients:'1 cup rolled oats\n1 cup plain flour\n1 cup sugar\n3/4 cup desiccated coconut\n125 g butter\n2 Tbsp golden syrup\n1 tsp baking soda\n2 Tbsp boiling water',
+  directions:'Preheat the oven to 180 °C and line two trays with baking paper.\nMix the oats, flour, sugar and coconut in a large bowl.\nMelt the butter and golden syrup together over a low heat.\nDissolve the baking soda in the boiling water and stir it into the butter mixture; it will foam up.\nPour into the dry ingredients and mix well.\nRoll into walnut-sized balls, place on the trays and flatten slightly.\nBake for 12 to 15 minutes until golden. Cool on the trays for 5 minutes, then on a rack.',
+  notes:'Sample recipe to show the layout. Delete it whenever you like.'},
+ {title:'Pavlova',servings:'8',prep:'20 min',cook:'1 h plus cooling',tags:['dessert','gluten free','kiwi classics'],
+  ingredients:'4 egg whites, at room temperature\n1 1/4 cups caster sugar\n1 tsp white vinegar\n1 tsp vanilla essence\n1 Tbsp cornflour\n# To serve\n300 ml cream, whipped\nKiwifruit, berries or passionfruit',
+  directions:'Preheat the oven to 150 °C. Draw a 20 cm circle on baking paper and lay it on a tray.\nBeat the egg whites to stiff peaks, then add the sugar a spoonful at a time, beating until thick and glossy.\nFold in the vinegar, vanilla and cornflour.\nSpread the mixture inside the circle, building up the sides a little.\nTurn the oven down to 100 °C and bake for 1 hour. Turn the oven off and leave the pavlova inside to cool completely.\nTop with the whipped cream and fruit just before serving.',
+  notes:'Sample recipe. Delete it whenever you like.'}];
+(async()=>{
+  await openDB();recipes=(await getAll()).map(normalise);
+  if(!recipes.length&&LS.get('rb-seeded','')!=='1'){for(const s of SAMPLES)await put(normalise({...s,id:uid()}));LS.set('rb-seeded','1')}
+  if(!handleImportHash())nav('list');
+})();
+}
+</script>
+</body>
+</html>
